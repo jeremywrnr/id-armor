@@ -1,12 +1,6 @@
-// rf69 demo tx rx.pde
+// rf69 mask reciever
 // -*- mode: C++ -*-
-// Example sketch showing how to create a simple messageing client
-// with the RH_RF69 class. RH_RF69 class does not provide for addressing or
-// reliability, so you should only use RH_RF69  if you do not need the higher
-// level messaging abilities.
-// It is designed to work with the other example rf69_server.
-// Demonstrates the use of AES encryption, setting the frequency and modem 
-// configuration
+// Critical Making s17
 
 #include <SPI.h>
 #include <RH_RF69.h>
@@ -19,21 +13,25 @@
 #define RFM69_RST     11   // "A"
 #define RFM69_IRQ     6    // "D"
 #define RFM69_INT     6    // "D"
-#define RFM69_IRQN    digitalPinToInterrupt(RFM69_IRQ )
+#define RFM69_IRQN    digitalPinToInterrupt(RFM69_IRQ)
 
-#define LED           13
+// used for feather pass through
+// #define LED           13
+#define servo            13
+#define audio            12
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
 
-void setup() 
+void setup()
 {
   Serial.begin(115200);
-  while (!Serial) { delay(1); } // wait until serial console is open, remove if not tethered to computer
 
-  pinMode(LED, OUTPUT);     
+  // wait until serial console is open, remove if not tethered to computer
+  while (!Serial) delay(1);
+
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
 
@@ -45,13 +43,14 @@ void setup()
   delay(10);
   digitalWrite(RFM69_RST, LOW);
   delay(10);
-  
+
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
     while (1);
   }
+
   Serial.println("RFM69 radio init OK!");
-  
+
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM (for low power module)
   // No encryption
   if (!rf69.setFrequency(RF69_FREQ)) {
@@ -64,22 +63,39 @@ void setup()
 
   // The encryption key has to be the same as the one in the server
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
+                  };
   rf69.setEncryptionKey(key);
-  
-  pinMode(LED, OUTPUT);
 
-  Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
+  Serial.print("RFM69 radio @");
+  Serial.print((int)RF69_FREQ);
+  Serial.println(" MHz");
 }
 
 
 void loop() {
- if (rf69.available()) {
-    // Should be a message for us now   
+  int msg = readMessage();
+  Serial.println(msg);
+
+  if (msg == 0) {
+    // turn off audio
+    // move motors down
+  } else if (msg == 1) {
+    // turn on audio
+    // move motors up
+  }
+
+}
+
+// function to read whether a signal was received from the handtransmitter
+// returns which type of signal was recieved (either high or low), or
+int readMessage() {
+  if (rf69.available()) {
+    // Should be a message for us now
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf69.recv(buf, &len)) {
-      if (!len) return;
+      if (!len) return -1;
       buf[len] = 0;
       Serial.print("Received [");
       Serial.print(len);
@@ -88,26 +104,17 @@ void loop() {
       Serial.print("RSSI: ");
       Serial.println(rf69.lastRssi(), DEC);
 
-      if (strstr((char *)buf, "Hello World")) {
-        // Send a reply!
-        uint8_t data[] = "And hello back to you";
-        rf69.send(data, sizeof(data));
-        rf69.waitPacketSent();
-        Serial.println("Sent a reply");
-        Blink(LED, 40, 3); //blink LED 3 times, 40ms between blinks
+      if (buf[0] == '0') {
+        return 0;
+      } else if (buf[0] == '1') {
+        return 1;
+      } else {
+        Serial.print("unexpected msg recieved:");
+        Serial.println((char*)buf);
+        return -1;
       }
-    } else {
-      Serial.println("Receive failed");
+
     }
   }
 }
 
-
-void Blink(byte PIN, byte DELAY_MS, byte loops) {
-  for (byte i=0; i<loops; i++)  {
-    digitalWrite(PIN,HIGH);
-    delay(DELAY_MS);
-    digitalWrite(PIN,LOW);
-    delay(DELAY_MS);
-  }
-}
