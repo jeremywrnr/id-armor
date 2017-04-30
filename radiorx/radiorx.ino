@@ -3,7 +3,24 @@
 // Critical Making s17
 
 #include <SPI.h>
+#include <Servo.h>
 #include <RH_RF69.h>
+
+/************ Motor Setup ***************/
+
+#define servo            13
+
+const int buttonPin = 7;
+const int servoPin = 13;
+const int maxServoPosition = 180; //degrees - maximum angle from 0 degrees the servo will reach
+const int servoDelay = 50; //ms - delay between each 1 degree incriment
+
+int buttonState = 0;         // variable for reading the pushbutton status
+int servoState;
+
+//Servo Variable Declaration
+Servo myservo;  // create servo object to control a servo
+int pos;    // variable to store the servo position
 
 /************ Radio Setup ***************/
 
@@ -16,8 +33,6 @@
 #define RFM69_IRQN    digitalPinToInterrupt(RFM69_IRQ)
 
 // used for feather pass through
-// #define LED           13
-#define servo            13
 #define audio            12
 
 // Singleton instance of the radio driver
@@ -70,6 +85,14 @@ void setup()
   Serial.print("RFM69 radio @");
   Serial.print((int)RF69_FREQ);
   Serial.println(" MHz");
+
+  // SERVO MOTOR SETUP
+
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
+
+  //Servo Setup Code
+  myservo.attach(servoPin);  // attaches the servo on pin to the servo object
 }
 
 
@@ -78,11 +101,11 @@ void loop() {
   Serial.println(msg);
 
   if (msg == 0) {
-    // turn off audio
-    // move motors down
+    controlAudio(0); // turn off audio
+    controlServo(0); // move motors down
   } else if (msg == 1) {
-    // turn on audio
-    // move motors up
+    controlAudio(1); // turn on audio
+    controlServo(1); // move motors up
   }
 
 }
@@ -116,5 +139,58 @@ int readMessage() {
 
     }
   }
+}
+
+// control the servo motor, turning it either off or on.
+// this code is modified from jimmy's original function.
+// pass in the level to the servo to tell it what to do
+
+void controlServo(int lvl) {
+
+  Serial.print("servo target: ");
+  Serial.println(lvl);
+
+  // check if the pushbutton is pressed.
+  // if it is, the buttonState is HIGH:
+  if (lvl) {
+
+    if (servoState == 0) { // already engaged
+
+      //Servo Loop Code, goes from 0 degrees to 180 degrees
+      for (pos = 0; pos <= maxServoPosition; pos += 1) {
+        Serial.print("pos variable: ");
+        Serial.println(pos);             // in steps of 1 degree
+        myservo.write(pos);              // tell servo to go to position in variable 'pos'
+        delay(servoDelay);               // waits 15ms for the servo to reach the position
+      }
+
+      servoState = 1;
+      delay (1000);
+    }
+
+  } else { // lvl == 0
+
+    if (servoState == 1) { // already disengaged
+
+      // goes from 180 degrees to 0 degrees
+      for (pos = maxServoPosition; pos >= 0; pos -= 1) {
+        Serial.print("pos variable: ");
+        Serial.println(pos);
+        myservo.write(pos);              // tell servo to go to position in variable 'pos'
+        delay(servoDelay);              // waits 15ms for the servo to reach the position
+      }
+
+      servoState = 0;
+      delay (1000);
+    }
+  }
+
+}
+
+// function to set the audio to be on or off given the input level.
+
+void controlAudio(int lvl) {
+  // maybe do some other stuff too.
+  digitalWrite(audio, lvl);
 }
 
