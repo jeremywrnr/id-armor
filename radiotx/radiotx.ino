@@ -24,7 +24,7 @@
 
 // need to use for other things
 // #define LED           13
-#define power            13
+#define power            12
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
@@ -36,7 +36,7 @@ void setup()
 {
   Serial.begin(115200);
   // wait until serial console is open, remove if not tethered to computer
-  while (!Serial) delay(1);
+  // while (!Serial) delay(1);
 
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
@@ -72,8 +72,8 @@ void setup()
                   };
   rf69.setEncryptionKey(key);
 
-  pinMode(power, INPUT);
-  // pinMode(LED, OUTPUT);
+  pinMode(power, INPUT_PULLUP);
+  digitalWrite(power, HIGH);
 
   Serial.print("RFM69 radio @");
   Serial.print((int)RF69_FREQ);
@@ -83,26 +83,31 @@ void setup()
 
 
 void loop() {
-  if (digitalRead(power) == HIGH)
-    sendMessage('1');
-  else if (digitalRead(power) == LOW)
+  int lvl = digitalRead(power);
+  //Serial.print("level: ");
+  //Serial.println(lvl);
+
+  if (lvl == HIGH)
     sendMessage('0');
+  else if (lvl == LOW)
+    sendMessage('1');
 }
 
 void sendMessage(char lvl) {
 
   if (!sending) {
     sending = 1;
-    // char radiopacket[20] = "Hello World #";
-    char radiopacket[20] = "0            ";
-    itoa(packetnum++, radiopacket + 13, 10);
-    Serial.print("Sending "); Serial.println(radiopacket);
+    char radiopacket[20] = "  packet:";
+    radiopacket[0] = lvl;
+    itoa(packetnum++, radiopacket + 8, 10);
+    Serial.print("Sending ");
+    Serial.println(radiopacket);
 
     // Send a message!
     rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
     rf69.waitPacketSent();
 
-    /* 
+    /*
     // Now wait for a reply
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
@@ -119,11 +124,11 @@ void sendMessage(char lvl) {
       Serial.println("No reply, is another RFM69 listening?");
     }
     */
-    
+
     sending = 0;
   }
 
-  delay(500); // delay for sending message
+  delay(100); // delay for sending message
 
 }
 

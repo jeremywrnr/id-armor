@@ -15,7 +15,7 @@ const int servoPin = 13;
 const int maxServoPosition = 180; //degrees - maximum angle from 0 degrees the servo will reach
 const int servoDelay = 50; //ms - delay between each 1 degree incriment
 
-int buttonState = 0;         // variable for reading the pushbutton status
+int buttonState = 0;   // variable for reading the pushbutton status
 int servoState;
 
 //Servo Variable Declaration
