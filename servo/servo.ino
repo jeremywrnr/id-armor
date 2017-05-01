@@ -7,7 +7,7 @@ Implement Noise Filter?
 
 const int buttonPin = 7;
 const int servoPin = 11;
-const int maxServoPosition = 130; //degrees - maximum angle from 0 degrees the servo will reach
+const int maxServoPosition = 160; //degrees - maximum angle from 0 degrees the servo will reach
 const int minServoPosition = 0; 
 const int servoDelay = 10; //ms - delay between each 1 degree incriment
 
