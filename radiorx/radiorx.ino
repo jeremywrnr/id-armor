@@ -29,7 +29,7 @@ void setup()
   Serial.begin(115200);
 
   // wait until serial console is open, remove if not tethered to computer
-  while (!Serial) delay(1);
+  // while (!Serial) delay(1);
 
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
@@ -75,9 +75,13 @@ void setup()
 
 void loop() {
   int msg = readMessage();
-  Serial.println(msg);
-  digitalWrite(audio, msg);
-  digitalWrite(servo, msg);
+
+  if (msg >= 0) {
+    digitalWrite(audio, msg);
+    digitalWrite(servo, msg);
+    Serial.println(msg);
+  }
+
 }
 
 // function to read whether a signal was received from the handtransmitter
@@ -88,14 +92,16 @@ int readMessage() {
     uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (rf69.recv(buf, &len)) {
-      if (!len) return -1;
+      if (!len)
+        return -1;
       buf[len] = 0;
-      Serial.print("Received [");
-      Serial.print(len);
-      Serial.print("]: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
-      Serial.println(rf69.lastRssi(), DEC);
+
+      //Serial.print("Received [");
+      //Serial.print(len);
+      //Serial.print("]: ");
+      //Serial.println((char*)buf);
+      //Serial.print("RSSI: ");
+      //Serial.println(rf69.lastRssi(), DEC);
 
       if (buf[0] == '0') {
         return 0;
@@ -104,11 +110,14 @@ int readMessage() {
       } else {
         Serial.print("unexpected msg recieved:");
         Serial.println((char*)buf);
-        return -1;
       }
 
     }
   }
+
+  delay(100); // delay before reading again
+  return -1;
+
 }
 
 
