@@ -7,8 +7,9 @@ Implement Noise Filter?
 
 const int buttonPin = 7;
 const int servoPin = 11;
-const int maxServoPosition = 180; //degrees - maximum angle from 0 degrees the servo will reach
-const int servoDelay = 50; //ms - delay between each 1 degree incriment
+const int maxServoPosition = 130; //degrees - maximum angle from 0 degrees the servo will reach
+const int minServoPosition = 0; 
+const int servoDelay = 10; //ms - delay between each 1 degree incriment
 
 int buttonState = 0;         // variable for reading the pushbutton status
 int servoState;
@@ -42,7 +43,7 @@ void loop() {
 
     else {
       //Servo Loop Code
-      for (pos = 0; pos <= maxServoPosition; pos += 1) { // goes from 0 degrees to 180 degrees
+      for (pos = minServoPosition; pos <= maxServoPosition; pos += 1) { // goes from 0 degrees to 180 degrees
         Serial.print("pos variable: "); Serial.println(pos);
         // in steps of 1 degree
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
@@ -59,7 +60,7 @@ void loop() {
     if (servoState == 0) {}
 
     else {
-      for (pos = maxServoPosition; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+      for (pos = maxServoPosition; pos >= minServoPosition; pos -= 1) { // goes from 180 degrees to 0 degrees
         Serial.print("pos variable: "); Serial.println(pos);
         myservo.write(pos);              // tell servo to go to position in variable 'pos'
         delay(servoDelay);                       // waits 15ms for the servo to reach the position

@@ -70,6 +70,9 @@ void setup()
   Serial.print((int)RF69_FREQ);
   Serial.println(" MHz");
 
+  // pinmode setting
+  pinMode(audio, OUTPUT);
+  pinMode(servo, OUTPUT);
 }
 
 
@@ -96,12 +99,12 @@ int readMessage() {
         return -1;
       buf[len] = 0;
 
-      //Serial.print("Received [");
-      //Serial.print(len);
-      //Serial.print("]: ");
-      //Serial.println((char*)buf);
-      //Serial.print("RSSI: ");
-      //Serial.println(rf69.lastRssi(), DEC);
+      Serial.print("Received [");
+      Serial.print(len);
+      Serial.print("]: ");
+      Serial.print((char*)buf);
+      Serial.print("\tRSSI: ");
+      Serial.println(rf69.lastRssi(), DEC);
 
       if (buf[0] == '0') {
         return 0;
@@ -119,6 +122,4 @@ int readMessage() {
   return -1;
 
 }
-
-
 
