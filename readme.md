@@ -3,6 +3,8 @@ id armor
 
 final project for critical making, spring 2017.
 
+more details here: https://jeremywrnr.com/identityARMOR/
+
 ## documentation
 
 - http://make.berkeley.edu/
